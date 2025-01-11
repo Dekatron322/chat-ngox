@@ -142,7 +142,7 @@ export default function SignUp() {
                   <Text style={styles.TextInputTitle}>Email</Text>
                   <TextInput
                     maxLength={100}
-                    placeholder="kad@gmail.com"
+                    placeholder="grosolar@gmail.com"
                     placeholderTextColor="#212121"
                     style={{
                       padding: 2,
