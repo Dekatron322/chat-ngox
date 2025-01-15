@@ -16,11 +16,11 @@ import BottomTabsNavigator from "@/components/navigation/BottomTabsNavigator";
 // SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "transparent" }}>
-      <SafeAreaProvider style={{ flex: 1 }}>
-        <BottomTabsNavigator />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
-  );
+	return (
+		<GestureHandlerRootView style={{ flex: 1, backgroundColor: "transparent" }}>
+			<SafeAreaProvider style={{ flex: 1 }}>
+				<BottomTabsNavigator />
+			</SafeAreaProvider>
+		</GestureHandlerRootView>
+	);
 }
