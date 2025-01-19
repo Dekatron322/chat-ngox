@@ -7,6 +7,7 @@ import {
 	StatusBar,
 	TextInput,
 	ActivityIndicator,
+	RefreshControl,
 } from "react-native";
 import React, {
 	useRef,
@@ -39,6 +40,7 @@ export default function HomeScreen() {
 	const [user, setUser] = useState<User | null>(null);
 	const [payments, setPayments] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [refreshing, setRefreshing] = useState(false); // state to track refresh
 
 	const fetchUserData = async () => {
 		setLoading(true);
@@ -68,6 +70,7 @@ export default function HomeScreen() {
 			console.error("Failed to fetch user data:", error);
 		} finally {
 			setLoading(false);
+			setRefreshing(false); // stop refreshing after data is loaded
 		}
 	};
 
@@ -76,32 +79,20 @@ export default function HomeScreen() {
 		fetchUserData();
 	}, []);
 
-	useState(false);
-	const [selectedPaymentType, setSelectedPaymentType] =
-		useState<string>("Post Paid");
-	const [accountNumber, setAccountNumber] = useState("");
-	const [meterNumber, setMeterNumber] = useState("");
-
-	const formatEmail = (email: string | undefined) => {
-		const firstPartLength = 4; // First part of the email before "****"
-		if (email) {
-			const [localPart, domain] = email.split("@");
-			if (localPart.length > firstPartLength) {
-				return (
-					localPart.slice(0, firstPartLength) +
-					"****" +
-					localPart.slice(-3) +
-					"@" +
-					domain
-				);
-			}
-		}
-		return email || ""; // Return the email or empty string if undefined
-	};
-
-	const handleSheetChanges = useCallback((index: number) => {
-		setIsBottomSheetOpen(index >= 0);
+	// Function to handle refresh when user pulls down
+	const handleRefresh = useCallback(() => {
+		setRefreshing(true);
+		fetchUserData(); // Fetch data again to refresh the screen
 	}, []);
+
+	const totalAmount = useMemo(() => {
+		return payments.reduce((sum, payment) => {
+			// Retrieve amount and quantity, ensuring they default to 0 if not present
+			const amount = parseFloat(payment.products[0]?.amount || "0");
+			const quantity = parseFloat(payment.products[0]?.quantity || "0");
+			return sum + amount * quantity; // Multiply amount by quantity
+		}, 0);
+	}, [payments]);
 
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: "#F6F6F6" }}>
@@ -126,14 +117,22 @@ export default function HomeScreen() {
 								Welcome, {user.name || "User"}!
 							</Text>
 						)}
-
 						<Spacer size={4} />
 					</View>
 				</View>
 				<Image source={require("@/assets/images/notification-bing.png")} />
 			</View>
-			<ScrollView showsVerticalScrollIndicator={false}>
-				<Spacer size={20} />
+
+			<ScrollView
+				showsVerticalScrollIndicator={false}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={handleRefresh} // Trigger the refresh when user pulls down
+					/>
+				}
+			>
+				{/* <Spacer size={20} />
 				<View style={{ paddingHorizontal: 20 }}>
 					<View style={styles.walletContainer}>
 						<View style={styles.walletContent}>
@@ -141,7 +140,6 @@ export default function HomeScreen() {
 							<Image source={require("@/assets/images/vector copy.png")} />
 						</View>
 						<Spacer size={4} />
-
 						<Text
 							style={[styles.walletAmount, { color: "#25396F", fontSize: 26 }]}
 						>
@@ -150,44 +148,23 @@ export default function HomeScreen() {
 									styles.walletAmount,
 									{ color: "#25396F", fontSize: 14 },
 								]}
-							>
-								N
-							</Text>{" "}
-							1,250,000.00
+							></Text>{" "}
+							{totalAmount.toLocaleString("en-NG", {
+								style: "currency",
+								currency: "NGN",
+							})}
 						</Text>
 						<Spacer size={16} />
-
-						{/* <TouchableOpacity
-							style={styles.bottomArea}
-							onPress={() => router.push("/(routes)/stats")}
-						>
-							<Image source={require("@/assets/images/ChartDonut.png")} />
-
-							<Text style={styles.walletAmountSmall}>
-								View Transaction Stats
-							</Text>
-						</TouchableOpacity> */}
 						<Spacer size={16} />
-						{/* <View style={styles.newBorder}></View> */}
-
-						{/* <TouchableOpacity
-							style={styles.btnContainer}
-							// onPress={handleOpenBottomSheet}
-							onPress={() => {
-								console.log("Account Number:", meterNumber);
-								accountNumberSheetRef.current?.close();
-								router.push("/(routes)/water");
-							}}
-						>
-							<Text style={styles.btnContent}>Buy Power</Text>
-						</TouchableOpacity> */}
 					</View>
-				</View>
-				{/* <Spacer size={30} /> */}
+				</View> */}
+
+				<Spacer size={16} />
 
 				<View style={styles.transactionContainer}>
 					<Text style={styles.transactionBody}>Quick Actions</Text>
 				</View>
+
 				<View
 					style={{
 						flexDirection: "row",
@@ -226,6 +203,7 @@ export default function HomeScreen() {
 							padding: 16,
 							flex: 1,
 						}}
+						onPress={() => router.push("/(routes)/details")}
 					>
 						<Image source={require("@/assets/images/Icon container (3).png")} />
 						<Spacer size={6} />
@@ -251,60 +229,61 @@ export default function HomeScreen() {
 				</View>
 
 				<View>
-					{/* <ActivityIndicator size='large' color='#008000' /> */}
-
-					{payments.map((payment) => (
-						<TouchableOpacity key={payment.id} style={styles.transactionList}>
-							<View>
-								<Text style={styles.bottomText}>Amount</Text>
-								<Spacer size={4} />
-								<Text style={styles.topText}>
-									NGN {payment.products[0]?.amount || "N/A"}
-								</Text>
-								<Spacer size={10} />
-								<Text style={styles.bottomText}>Beneficiary</Text>
-								<Spacer size={4} />
-								<Text style={styles.topText}>
-									{payment.beneficiarys[0]?.first_name}{" "}
-									{payment.beneficiarys[0]?.last_name || "N/A"}
-								</Text>
-							</View>
-							<View
-								style={{ justifyContent: "flex-end", alignItems: "flex-end" }}
+					{payments
+						.sort(
+							(a, b) =>
+								new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime()
+						) // Sort by latest date
+						.slice(0, 5) // Limit to 5 transactions
+						.map((payment) => (
+							<TouchableOpacity
+								key={payment.id}
+								style={styles.transactionList}
+								onPress={async () => {
+									try {
+										await AsyncStorage.setItem("selectedPaymentId", payment.id); // Store payment ID
+										router.push("/(routes)/waterReciept"); // Navigate to the payment receipt screen
+									} catch (error) {
+										console.error("Error storing payment ID:", error);
+									}
+								}}
 							>
-								<Text
-									style={{
-										backgroundColor: "#EEFCF6",
-										color: "#35C78A",
-										padding: 10,
-										borderRadius: 100,
-									}}
+								<View>
+									<Text style={styles.bottomText}>Amount</Text>
+									<Spacer size={4} />
+									<Text style={styles.topText}>
+										NGN {payment.products[0]?.amount || "N/A"} x{" "}
+										{payment.products[0]?.quantity || "N/A"}
+									</Text>
+									<Spacer size={10} />
+									<Text style={styles.bottomText}>Beneficiary</Text>
+									<Spacer size={4} />
+									<Text style={styles.topText}>
+										{payment.beneficiarys[0]?.first_name}{" "}
+										{payment.beneficiarys[0]?.last_name || "N/A"}
+									</Text>
+								</View>
+								<View
+									style={{ justifyContent: "flex-end", alignItems: "flex-end" }}
 								>
-									{payment.beneficiarys[0]?.first_name || "N/A"}
-								</Text>
-								<Spacer size={10} />
-								<Text style={styles.bottomText}>Date</Text>
-								<Text style={styles.topText}>
-									{new Date(payment.pub_date).toLocaleString() || "N/A"}
-								</Text>
-							</View>
-						</TouchableOpacity>
-					))}
-
-					{/* <View
-						style={{
-							flex: 1,
-							alignItems: "center",
-							justifyContent: "center",
-							gap: 6,
-							height: 300,
-						}}
-					>
-						<Image source={require("@/assets/images/bin.png")} />
-						<Text style={[styles.walletAmountSmall, { color: "#00000055" }]}>
-							No transactions found
-						</Text>
-					</View> */}
+									<Text
+										style={{
+											backgroundColor: "#EEFCF6",
+											color: "#35C78A",
+											padding: 10,
+											borderRadius: 100,
+										}}
+									>
+										Completed
+									</Text>
+									<Spacer size={10} />
+									<Text style={styles.bottomText}>Date</Text>
+									<Text style={styles.topText}>
+										{new Date(payment.pub_date).toLocaleString() || "N/A"}
+									</Text>
+								</View>
+							</TouchableOpacity>
+						))}
 				</View>
 			</ScrollView>
 		</SafeAreaView>

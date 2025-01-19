@@ -12,7 +12,6 @@ import {
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { showMessage } from "react-native-flash-message"; // Import showMessage
 import { styles } from "@/styles/onboarding/onboarding";
 import { Spacer } from "@/components/CustomUIComponets/Spacer";
 import { router } from "expo-router";
@@ -26,12 +25,7 @@ export default function SignUp() {
 		setButtonSpinner(true);
 
 		router.push("/(routes)/login");
-	};
-
-	const handleSignUp = async () => {
-		setButtonSpinner(true);
-
-		router.push("/(routes)/signup");
+		setButtonSpinner(false);
 	};
 
 	return (
@@ -88,14 +82,6 @@ export default function SignUp() {
 
 					<Spacer size={20} />
 				</ScrollView>
-				<TouchableOpacity style={styles.btnContainer} onPress={handleSignUp}>
-					{buttonSpinner ? (
-						<ActivityIndicator size='small' color='#ffffff' />
-					) : (
-						<Text style={styles.btnContent}>Sign Up</Text>
-					)}
-				</TouchableOpacity>
-				<Spacer size={16} />
 
 				<TouchableOpacity
 					style={styles.btnContainerOutline}

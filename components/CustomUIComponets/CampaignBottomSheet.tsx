@@ -13,6 +13,9 @@ import { styles } from "@/styles/general/general";
 type Campaign = {
 	id: string;
 	name: string;
+	vendor: string;
+	price: number;
+	quantity: number;
 };
 
 type CampaignBottomSheetProps = {

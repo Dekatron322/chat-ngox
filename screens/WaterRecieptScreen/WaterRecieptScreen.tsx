@@ -1,341 +1,255 @@
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  ImageBackground,
-  Clipboard, // Import Clipboard API
-  Alert,
+	View,
+	Text,
+	TouchableOpacity,
+	ScrollView,
+	ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "@/styles/general/general";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Spacer } from "@/components/CustomUIComponets/Spacer";
-import { router, useLocalSearchParams } from "expo-router";
 import CustomHeader from "@/components/CustomUIComponets/CustomHeader";
 
-interface Transaction {
-  amount: string;
-  token: string;
-  result: string;
-  pub_date: string;
-  meterNumber: string;
-  customerName: string;
-  payment_type: string;
-  totalUnitVended: string;
-  paymentChannelAmount: string;
-  laitude: string;
-  longitude: string;
-  tariffCode: string;
-  tariffRate: string;
-}
-
 export default function PowerRecieptScreen() {
-  const [buttonSpinner, setButtonSpiner] = useState(false);
-  const { transactionId } = useLocalSearchParams();
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
-  const [loading, setLoading] = useState(true);
+	const [paymentDetails, setPaymentDetails] = useState<any>(null);
+	const [loading, setLoading] = useState<boolean>(true);
 
-  const handleSignIn = () => {
-    setButtonSpiner(true);
+	const fetchPaymentDetails = async () => {
+		setLoading(true);
+		try {
+			const paymentId = await AsyncStorage.getItem("selectedPaymentId");
+			if (!paymentId) {
+				console.error("No payment ID found");
+				return;
+			}
 
-    setTimeout(() => {
-      setButtonSpiner(false);
-      router.push("/(routes)/success");
-    }, 3000);
-  };
+			const response = await fetch(
+				`https://api.shalomescort.org/payment/payment/${paymentId}/`
+			);
+			if (!response.ok) {
+				throw new Error("Failed to fetch payment details");
+			}
 
-  const fetchTransactionDetails = async () => {
-    try {
-      const response = await fetch(
-        `https://kad-electric-mob-api.fyber.site/transaction/transaction/${transactionId}/`
-      );
-      const data = await response.json();
-      setTransaction(data);
-    } catch (error) {
-      console.error("Error fetching transaction:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+			const data = await response.json();
+			setPaymentDetails(data); // Store payment details in state
+		} catch (error) {
+			console.error("Error fetching payment details:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  useEffect(() => {
-    fetchTransactionDetails();
-  }, [transactionId]);
+	useEffect(() => {
+		fetchPaymentDetails();
+	}, []);
 
-  const copyToClipboard = (text: string) => {
-    Clipboard.setString(text);
-    Alert.alert("Copied", "Transaction result has been copied to clipboard.");
-  };
+	const calculateTotalTransaction = () => {
+		if (!paymentDetails?.products) return 0;
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#008000" />;
-  }
+		return paymentDetails.products.reduce((total: number, product: any) => {
+			const productAmount = parseFloat(product.amount) || 0;
+			const productQuantity = product.quantity || 0;
+			return total + productAmount * productQuantity;
+		}, 0);
+	};
 
-  if (!transaction) {
-    return <Text>No transaction data found</Text>;
-  }
+	const totalTransaction = calculateTotalTransaction();
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <Spacer size={6} />
-      <CustomHeader title="Transaction Details" showHistory={true} />
-      <ScrollView showsHorizontalScrollIndicator={false}>
-        <Spacer size={28} />
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
-          <View
-            style={{
-              paddingHorizontal: 20,
-            }}
-          >
-            <Spacer size={16} />
+	if (loading) {
+		return (
+			<SafeAreaView style={styles.container}>
+				<ActivityIndicator size='large' color='#17CE89' />
+			</SafeAreaView>
+		);
+	}
 
-            <ImageBackground
-              source={require("@/assets/images/Subtract.png")}
-              style={{ width: "100%" }}
-              resizeMode="stretch"
-            >
-              <View
-                style={{
-                  paddingHorizontal: 20,
-                  paddingVertical: 40,
-                }}
-              >
-                <Image
-                  style={{ alignSelf: "center" }}
-                  source={require("@/assets/images/Kad_logo.png")}
-                />
-                <Spacer size={16} />
+	if (!paymentDetails) {
+		return (
+			<SafeAreaView style={styles.container}>
+				<Text>No payment details found</Text>
+			</SafeAreaView>
+		);
+	}
 
-                <Text
-                  style={[
-                    styles.titleTextBold,
-                    { textAlign: "center", color: "#008000" },
-                  ]}
-                >
-                  {" "}
-                  +₦
-                  {transaction.amount
-                    ? transaction.amount
-                    : transaction.paymentChannelAmount}
-                </Text>
-                <Spacer size={4} />
-                <View
-                  style={{
-                    gap: 4,
+	return (
+		<SafeAreaView style={styles.container}>
+			<Spacer size={6} />
+			<CustomHeader title='Transaction Details' showHistory={true} />
+			<ScrollView showsHorizontalScrollIndicator={false}>
+				<Spacer size={16} />
+				<View style={{ paddingHorizontal: 24 }}>
+					<Text
+						style={{
+							textAlign: "center",
+							fontFamily: "GilroySemiBold",
+							color: "#25396F",
+							fontSize: 18,
+						}}
+					>
+						{paymentDetails.campaign_name || "N/A"}
+					</Text>
+					<Spacer size={10} />
+					<View
+						style={{
+							flex: 1,
+							justifyContent: "space-between",
+							borderStyle: "dashed",
+							borderColor: "#707FA3",
+							borderWidth: 1,
+							borderRadius: 8,
+							padding: 16,
+							backgroundColor: "#F5F6F8",
+						}}
+					>
+						<View
+							style={{
+								justifyContent: "space-between",
+								flexDirection: "row",
+								alignItems: "flex-start",
+							}}
+						>
+							<View>
+								<Text
+									style={{
+										color: "#707FA3",
+										fontFamily: "GilroyRegular",
+										fontSize: 12,
+										marginBottom: 4,
+									}}
+								>
+									Beneficiary
+								</Text>
+								<Text style={{ fontFamily: "GilroyMedium", color: "#25396F" }}>
+									{paymentDetails.beneficiarys[0]?.first_name}{" "}
+									{paymentDetails.beneficiarys[0]?.last_name || "N/A"}
+								</Text>
+							</View>
+							<View>
+								<Text
+									style={{
+										color: "#707FA3",
+										fontFamily: "GilroyRegular",
+										fontSize: 12,
+										marginBottom: 4,
+									}}
+								>
+									Amount
+								</Text>
+								<Text style={{ fontFamily: "GilroyMedium", color: "#25396F" }}>
+									NGN {paymentDetails.products[0]?.amount || "N/A"}
+								</Text>
+							</View>
+						</View>
+						<Spacer size={20} />
 
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text style={[styles.textSubTitle, { color: "#171D19" }]}>
-                    Successful Transaction
-                  </Text>
+						<View
+							style={{
+								justifyContent: "space-between",
+								flexDirection: "row",
+							}}
+						>
+							<View>
+								<Text
+									style={{
+										color: "#707FA3",
+										fontFamily: "GilroyRegular",
+										fontSize: 12,
+										marginBottom: 4,
+									}}
+								>
+									DATE
+								</Text>
+								<Text style={{ fontFamily: "GilroyMedium", color: "#25396F" }}>
+									{new Date(paymentDetails.pub_date).toLocaleString()}
+								</Text>
+							</View>
+							<View>
+								<Text
+									style={{
+										color: "#707FA3",
+										fontFamily: "GilroyRegular",
+										fontSize: 12,
+										marginBottom: 4,
+									}}
+								>
+									Status
+								</Text>
+								<Text style={{ fontFamily: "GilroyMedium", color: "#25396F" }}>
+									Completed
+								</Text>
+							</View>
+						</View>
+						<Spacer size={28} />
+						<Text
+							style={{
+								fontFamily: "GilroyMedium",
+								color: "#25396F",
+								fontSize: 16,
+							}}
+						>
+							Product/Service:
+						</Text>
+						{paymentDetails.products?.map((product: any, index: number) => (
+							<View
+								key={index}
+								style={{
+									paddingVertical: 12,
+								}}
+							>
+								<Text
+									style={{
+										color: "#707FA3",
+										fontFamily: "GilroyRegular",
+										fontSize: 14,
+									}}
+								>
+									{product.name || "N/A"} (Price:{product.amount} - Qty:
+									{product.quantity})
+								</Text>
+								{/* <Text
+									style={{
+										color: "#707FA3",
+										fontFamily: "GilroyRegular",
+										fontSize: 14,
+									}}
+								>
+									Amount: NGN {product.amount || "N/A"}
+								</Text> */}
+							</View>
+						))}
+					</View>
+					<Spacer size={10} />
+					<View
+						style={{
+							flexDirection: "row",
+							justifyContent: "space-between",
+						}}
+					>
+						<Text
+							style={{
+								color: "#707FA3",
+								fontFamily: "GilroyRegular",
+								fontSize: 14,
+							}}
+						>
+							Total Transaction
+						</Text>
+						<Text
+							style={{
+								fontFamily: "GilroyMedium",
+								color: "#25396F",
+								fontSize: 14,
+							}}
+						>
+							NGN {totalTransaction.toFixed(2)}
+						</Text>
+					</View>
 
-                  <Text style={[styles.textSubTitle, { color: "#171D19" }]}>
-                    {new Date(transaction.pub_date).toLocaleString()}
-                  </Text>
-                </View>
-                <Spacer size={8} />
-                {transaction.result ? (
-                  <View style={styles.transactionToken}>
-                    <Text
-                      style={[
-                        styles.textSubTitle,
-                        { color: "#008000", fontSize: 16 },
-                      ]}
-                    >
-                      Token:
-                    </Text>
-                    <Text
-                      style={[
-                        styles.textSubTitle,
-                        { color: "#008000", fontSize: 16 },
-                      ]}
-                    >
-                      {transaction.result}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => copyToClipboard(transaction.result)}
-                    >
-                      <Image
-                        source={require("@/assets/images/CopySimple.png")}
-                        style={{ width: 18, height: 18 }}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View style={styles.transactionToken}>
-                    <Text
-                      style={[
-                        styles.textSubTitle,
-                        {
-                          color: "#008000",
-                          fontSize: 16,
-                          textAlign: "center",
-                          flex: 1,
-                        },
-                      ]}
-                    >
-                      Cash Postpaid
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Image
-                style={{ alignSelf: "center" }}
-                source={require("@/assets/images/darkline.png")}
-              />
-              <View style={styles.transactionCard}>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Transaction Type</Text>
-                  <Text style={styles.transactionLHS}>Electricity Bill</Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Bill Provider</Text>
-                  <Text style={styles.transactionLHS}>Kaduna Electric</Text>
-                </View>
-                {transaction.meterNumber ? (
-                  <View style={styles.transactionInner}>
-                    <Text style={styles.transactionRHS}>Meter Number</Text>
-                    <Text style={styles.transactionLHS}>
-                      {transaction.meterNumber}
-                    </Text>
-                  </View>
-                ) : (
-                  <View></View>
-                )}
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Order Amount</Text>
-                  <Text style={styles.transactionLHS}>
-                    {" "}
-                    +₦
-                    {transaction.amount
-                      ? transaction.amount
-                      : transaction.paymentChannelAmount}
-                  </Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Customer Name</Text>
-                  <Text style={styles.transactionLHS}>
-                    {transaction.customerName}
-                  </Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Transaction Date</Text>
-                  <Text style={styles.transactionLHS}>
-                    {new Date(transaction.pub_date).toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Unit Purchased</Text>
-                  <Text style={styles.transactionLHS}>
-                    {transaction.totalUnitVended} Units
-                  </Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Payment Method</Text>
-                  <Text style={styles.transactionLHS}>
-                    {transaction.payment_type}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    marginVertical: 10,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#00000080",
-                      fontFamily: "GilroyMedium",
-                      fontSize: 14,
-                    }}
-                  >
-                    Status
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#008000",
-                      fontFamily: "GilroyMedium",
-                      fontSize: 14,
-                    }}
-                  >
-                    Successful
-                  </Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Tariff Code</Text>
-                  <Text style={styles.transactionLHS}>
-                    {transaction.tariffCode}
-                  </Text>
-                </View>
-                <View style={styles.transactionInner}>
-                  <Text style={styles.transactionRHS}>Tariff Rate</Text>
-                  <Text style={styles.transactionLHS}>
-                    {transaction.tariffRate}
-                  </Text>
-                </View>
-              </View>
-            </ImageBackground>
-
-            <Spacer size={8} />
-          </View>
-        </View>
-      </ScrollView>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 10,
-          justifyContent: "space-between",
-          backgroundColor: "#ffffff",
-          alignItems: "center",
-          paddingHorizontal: 20,
-        }}
-      >
-        <TouchableOpacity
-          style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-         onPress={() => router.push("/(tabs)/home")}
-        >
-          <Image
-            style={{ alignSelf: "center", height: 20, width: 20 }}
-            source={require("@/assets/images/House.png")}
-          />
-          
-          <Text
-            style={{
-              paddingVertical: 20,
-              color: "#008000",
-              fontFamily: "LufgaMedium",
-            }}
-          >
-            Return Home
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-          //   onPress={() => router.push("/(routes)/reciept")}
-        >
-          <Image
-            style={{ alignSelf: "center", height: 20, width: 20 }}
-            source={require("@/assets/images/DownloadSimple.png")}
-          />
-          <Text
-            style={{
-              paddingVertical: 20,
-              color: "#008000",
-              fontFamily: "LufgaMedium",
-            }}
-          >
-            Save Document
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
+					{/* List of products */}
+				</View>
+			</ScrollView>
+		</SafeAreaView>
+	);
 }

@@ -9,41 +9,28 @@ import {
 	Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import NfcManager, { NfcTech } from "react-native-nfc-manager";
 import { styles } from "@/styles/general/general";
 import { Spacer } from "@/components/CustomUIComponets/Spacer";
 import { router } from "expo-router";
+import { showMessage } from "react-native-flash-message";
 
 export default function PowerDetailScreen() {
 	const [buttonSpinner, setButtonSpinner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
 
 	useEffect(() => {
+		// If you want to simulate NFC, no need to initialize NfcManager
+		// but if you want to keep the code for real NFC initialization, you can still do it here
 		const initializeNfc = async () => {
-			try {
-				const isSupported = await NfcManager.isSupported();
-				if (!isSupported) {
-					Alert.alert("NFC Not Supported", "This device does not support NFC.");
-					return;
-				}
-
-				const result = await NfcManager.start();
-				console.log("NFC Manager initialized:", result);
-
-				if (result === null) {
-					throw new Error("NFC Manager returned null.");
-				}
-			} catch (error) {
-				console.error("Error initializing NFC Manager:", error);
-				Alert.alert("Error", "Failed to initialize NFC. Restart the app.");
-			}
+			// You can log this and skip further NFC initialization for simulation purposes.
+			console.log("Simulating NFC Initialization...");
 		};
 
 		initializeNfc();
 
+		// Cleanup: cancel any NFC technology requests
 		return () => {
-			NfcManager.cancelTechnologyRequest();
-			NfcManager.stop();
+			console.log("Cleaning up NFC simulation...");
 		};
 	}, []);
 
@@ -51,33 +38,33 @@ export default function PowerDetailScreen() {
 		try {
 			setIsScanning(true);
 
-			const isEnabled = await NfcManager.isEnabled();
-			if (!isEnabled) {
-				Alert.alert(
-					"NFC Disabled",
-					"Please enable NFC in your device settings."
-				);
+			// Simulate NFC scanning
+			const simulatedTag = {
+				id: "12345", // Simulated tag ID
+				type: "NFC_TAG_TYPE", // Simulated tag type
+				payload: "Sample NFC Data", // Simulated payload data
+			};
+
+			// Simulate a delay as if scanning
+			setTimeout(() => {
+				console.log("Simulated NFC Tag detected:", simulatedTag);
+				showMessage({
+					message: "Success",
+					description: "Scanned Succeffully!",
+					type: "success",
+					backgroundColor: "#17CE89", // Optional color customization
+					color: "#fff", // Text color
+					textStyle: { fontFamily: "GilroyMedium" },
+				});
+				// Alert.alert("Success", "Simulated NFC Tag detected successfully.");
 				setIsScanning(false);
-				return;
-			}
-
-			await NfcManager.requestTechnology(NfcTech.Ndef);
-			const tag = await NfcManager.getTag();
-
-			if (tag) {
-				console.log("NFC Tag detected:", tag);
-				Alert.alert("Success", "NFC Tag detected successfully.");
 				// Uncomment to navigate:
-				// router.push("/(routes)/success");
-			} else {
-				Alert.alert("Error", "No NFC tag detected. Please try again.");
-			}
+				router.push("/(routes)/success");
+			}, 10000); // Simulate a 2-second delay for scanning
 		} catch (error) {
-			console.error("Error scanning NFC tag:", error);
-			Alert.alert("Error", "Failed to scan NFC tag. Please try again.");
-		} finally {
+			console.error("Error simulating NFC scan:", error);
+			Alert.alert("Error", "Failed to simulate NFC scan. Please try again.");
 			setIsScanning(false);
-			NfcManager.cancelTechnologyRequest();
 		}
 	};
 
@@ -125,7 +112,7 @@ export default function PowerDetailScreen() {
 					onPress={handleNfcScan}
 				>
 					{isScanning ? (
-						<ActivityIndicator size='small' color='#ffffff' />
+						<ActivityIndicator size='small' color='#17CE89' />
 					) : (
 						<Text style={styles.btnOutlineContent}>Start Scan</Text>
 					)}

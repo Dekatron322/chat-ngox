@@ -1,15 +1,9 @@
 import React, { useState, useEffect, forwardRef } from "react";
-import {
-	View,
-	Text,
-	ScrollView,
-	TouchableOpacity,
-	ActivityIndicator,
-} from "react-native";
-import BottomSheet from "@gorhom/bottom-sheet";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import axios from "axios";
 import { styles } from "@/styles/general/general";
-import { Checkbox } from "react-native-paper"; // You can use any checkbox library or custom checkbox component
+import { Checkbox } from "react-native-paper";
 
 type Product = {
 	id: string;
@@ -41,13 +35,13 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 				// Format data to match the `Product` type
 				const formattedProducts = data.map((product: any) => ({
 					id: product.id,
-					name: product.tag, // You can change this to any property you want to display
+					name: product.tag, // Adjusted for the desired property
 					cost: product.cost,
-					quantity: product.quantity || "N/A", // Handle missing quantities
+					quantity: product.quantity || "N/A",
 					tag: product.tag,
 				}));
 
-				setProducts(formattedProducts); // Set products in state
+				setProducts(formattedProducts);
 			} catch (err) {
 				setError("Failed to load products. Please try again later.");
 			} finally {
@@ -70,19 +64,20 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			}
 
 			setSelectedProducts(updatedSelections);
-			onProductSelects(updatedSelections); // Notify parent of changes
+			onProductSelects(updatedSelections);
 		};
 
 		const isProductSelected = (product: Product) =>
 			selectedProducts.some((p) => p.id === product.id);
 
+		// Render loading spinner
 		if (loading) {
 			return (
 				<BottomSheet
 					enablePanDownToClose={true}
 					ref={ref}
-					index={-1}
-					snapPoints={["50%", "50%"]}
+					index={0}
+					snapPoints={["50%", "70%"]}
 				>
 					<View style={{ padding: 20, alignItems: "center" }}>
 						<ActivityIndicator size='large' color='#0000ff' />
@@ -91,13 +86,14 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			);
 		}
 
+		// Render error message
 		if (error) {
 			return (
 				<BottomSheet
 					enablePanDownToClose={true}
 					ref={ref}
-					index={-1}
-					snapPoints={["50%", "50%"]}
+					index={0}
+					snapPoints={["50%", "70%"]}
 				>
 					<View style={{ padding: 20, alignItems: "center" }}>
 						<Text>{error}</Text>
@@ -110,34 +106,40 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			<BottomSheet
 				enablePanDownToClose={true}
 				ref={ref}
-				index={-1}
-				snapPoints={["50%", "50%"]}
+				index={0}
+				snapPoints={["50%", "70%"]}
 			>
-				<View style={{ padding: 20 }}>
-					<ScrollView>
+				<View style={{ flex: 1, paddingHorizontal: 20 }}>
+					<BottomSheetScrollView
+						contentContainerStyle={{
+							paddingBottom: 20,
+						}}
+						showsVerticalScrollIndicator={false}
+					>
 						{products.map((product) => (
 							<TouchableOpacity
 								key={product.id}
-								style={[
-									styles.cardContainer,
-									{ flexDirection: "row", alignItems: "center" },
-								]}
+								style={{
+									flexDirection: "row",
+									alignItems: "center",
+									marginBottom: 15,
+								}}
 								onPress={() => toggleProductSelection(product)}
 							>
 								<Checkbox
 									status={isProductSelected(product) ? "checked" : "unchecked"}
 									onPress={() => toggleProductSelection(product)}
 								/>
-								<View>
+								<View style={{ marginLeft: 10 }}>
 									<Text style={styles.info}>{product.name}</Text>
-									<Text style={styles.info}>{`Cost: ${product.cost}`}</Text>
+									{/* <Text style={styles.info}>{`Cost: ${product.cost}`}</Text>
 									<Text
 										style={styles.info}
-									>{`Quantity: ${product.quantity}`}</Text>
+									>{`Quantity: ${product.quantity}`}</Text> */}
 								</View>
 							</TouchableOpacity>
 						))}
-					</ScrollView>
+					</BottomSheetScrollView>
 				</View>
 			</BottomSheet>
 		);

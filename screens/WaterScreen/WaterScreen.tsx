@@ -44,6 +44,7 @@ type Beneficiary = {
 type Campaign = {
 	id: string;
 	name: string;
+	vendor: string;
 	price: number;
 	quantity: number;
 };
@@ -133,6 +134,13 @@ export default function PrepaidScreen() {
 
 	// Prepare the payload for the API request
 	const preparePayload = () => {
+		// Calculate the total cost of selected products
+		const totalCost = selectedProducts.reduce((acc, product) => {
+			const cost = parseFloat(product.cost) || 0; // Ensure cost is a valid number
+			const quantity = product.quantity || 0; // Ensure quantity is a valid number
+			return acc + cost * quantity;
+		}, 0);
+
 		return {
 			beneficiarys: selectedUsers.map((user) => ({
 				beneficiary_id: user.beneficiary_id,
@@ -154,6 +162,8 @@ export default function PrepaidScreen() {
 				quantity: product.quantity.toString(),
 			})),
 			campaign_name: selectedCampaign?.name || "",
+			vendor_name: selectedCampaign?.vendor || "",
+			amount: totalCost, // Set the calculated total cost here
 			status: true,
 			pub_date: new Date().toISOString(),
 		};
@@ -214,7 +224,11 @@ export default function PrepaidScreen() {
 
 	// Handle product selection (multiple products)
 	const handleProductSelects = (selectedProducts: Product[]) => {
-		setSelectedProducts(selectedProducts); // Update the selected products state
+		const updatedProducts = selectedProducts.map((product) => ({
+			...product,
+			quantity: 1, // Set quantity to 1 by default
+		}));
+		setSelectedProducts(updatedProducts); // Update the selected products state
 		productBottomSheetRef.current?.close();
 	};
 
@@ -286,6 +300,20 @@ export default function PrepaidScreen() {
 					</TouchableOpacity>
 					<Spacer size={16} />
 				</View>
+				<View
+					style={{
+						flexDirection: "row",
+						alignItems: "center",
+						marginBottom: 20,
+						justifyContent: "space-between",
+						paddingHorizontal: 20,
+					}}
+				>
+					<Text style={{ fontFamily: "GilroyBold" }}>Products</Text>
+					<Text style={{ fontFamily: "GilroyBold" }}>Qty</Text>
+					<Text style={{ fontFamily: "GilroyBold" }}>Amount</Text>
+					<Text></Text>
+				</View>
 
 				{selectedProducts.length > 0 ? (
 					selectedProducts.map((product, index) => (
@@ -297,24 +325,11 @@ export default function PrepaidScreen() {
 								style={{
 									flexDirection: "row",
 									alignItems: "center",
-									marginBottom: 20,
-									justifyContent: "space-between",
-								}}
-							>
-								<Text style={{ fontFamily: "GilroyBold" }}>Productss</Text>
-								<Text style={{ fontFamily: "GilroyBold" }}>Qty</Text>
-								<Text style={{ fontFamily: "GilroyBold" }}>Amount</Text>
-								<Text></Text>
-							</View>
-							<View
-								style={{
-									flexDirection: "row",
-									alignItems: "center",
 									gap: 6,
 									justifyContent: "space-between",
 								}}
 							>
-								<Text>{product.name}</Text>
+								<Text style={{ width: 100 }}>{product.name}</Text>
 
 								{/* Quantity controls */}
 								<View
@@ -387,7 +402,7 @@ export default function PrepaidScreen() {
 									</TouchableOpacity>
 								</View>
 
-								<Text>{product.cost}</Text>
+								<Text style={{ width: 60 }}>{product.cost}</Text>
 
 								{/* Delete product */}
 								<Feather
