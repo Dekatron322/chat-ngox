@@ -257,6 +257,7 @@ export default function PrepaidScreen() {
 						onPress={() => {
 							beneficiaryBottomSheetRef.current?.expand();
 							campaignBottomSheetRef.current?.close();
+							productBottomSheetRef.current?.close();
 						}}
 					>
 						<Text style={styles.enterAmount}>
@@ -274,6 +275,7 @@ export default function PrepaidScreen() {
 						onPress={() => {
 							beneficiaryBottomSheetRef.current?.close();
 							campaignBottomSheetRef.current?.expand();
+							productBottomSheetRef.current?.close();
 						}}
 					>
 						<Text style={styles.enterAmount}>
@@ -288,6 +290,8 @@ export default function PrepaidScreen() {
 					<TouchableOpacity
 						onPress={() => {
 							productBottomSheetRef.current?.expand();
+							beneficiaryBottomSheetRef.current?.close();
+							campaignBottomSheetRef.current?.close();
 						}}
 					>
 						<Text style={styles.enterAmount}>

@@ -76,7 +76,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 				<BottomSheet
 					enablePanDownToClose={true}
 					ref={ref}
-					index={0}
+					index={-1} // Closed by default
 					snapPoints={["50%", "70%"]}
 				>
 					<View style={{ padding: 20, alignItems: "center" }}>
@@ -92,7 +92,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 				<BottomSheet
 					enablePanDownToClose={true}
 					ref={ref}
-					index={0}
+					index={-1} // Closed by default
 					snapPoints={["50%", "70%"]}
 				>
 					<View style={{ padding: 20, alignItems: "center" }}>
@@ -102,11 +102,12 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			);
 		}
 
+		// Render product list
 		return (
 			<BottomSheet
 				enablePanDownToClose={true}
 				ref={ref}
-				index={0}
+				index={-1} // Closed by default
 				snapPoints={["50%", "70%"]}
 			>
 				<View style={{ flex: 1, paddingHorizontal: 20 }}>
