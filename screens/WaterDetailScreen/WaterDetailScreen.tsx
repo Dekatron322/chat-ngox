@@ -17,55 +17,45 @@ import { showMessage } from "react-native-flash-message";
 export default function PowerDetailScreen() {
 	const [buttonSpinner, setButtonSpinner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
+	const [tapCount, setTapCount] = useState(0);
 
-	useEffect(() => {
-		// If you want to simulate NFC, no need to initialize NfcManager
-		// but if you want to keep the code for real NFC initialization, you can still do it here
-		const initializeNfc = async () => {
-			// You can log this and skip further NFC initialization for simulation purposes.
-			console.log("Simulating NFC Initialization...");
-		};
+	const handleTap = () => {
+		// Simulate hand detection
+		const isHand = Math.random() > 1; // 50% chance of detecting a hand
 
-		initializeNfc();
-
-		// Cleanup: cancel any NFC technology requests
-		return () => {
-			console.log("Cleaning up NFC simulation...");
-		};
-	}, []);
-
-	const handleNfcScan = async () => {
-		try {
-			setIsScanning(true);
-
-			// Simulate NFC scanning
-			const simulatedTag = {
-				id: "12345", // Simulated tag ID
-				type: "NFC_TAG_TYPE", // Simulated tag type
-				payload: "Sample NFC Data", // Simulated payload data
-			};
-
-			// Simulate a delay as if scanning
-			setTimeout(() => {
-				console.log("Simulated NFC Tag detected:", simulatedTag);
-				showMessage({
-					message: "Success",
-					description: "Scanned Succeffully!",
-					type: "success",
-					backgroundColor: "#17CE89", // Optional color customization
-					color: "#fff", // Text color
-					textStyle: { fontFamily: "GilroyMedium" },
-				});
-				// Alert.alert("Success", "Simulated NFC Tag detected successfully.");
-				setIsScanning(false);
-				// Uncomment to navigate:
-				router.push("/(routes)/success");
-			}, 10000); // Simulate a 2-second delay for scanning
-		} catch (error) {
-			console.error("Error simulating NFC scan:", error);
-			Alert.alert("Error", "Failed to simulate NFC scan. Please try again.");
-			setIsScanning(false);
+		if (isHand) {
+			Alert.alert(
+				"Invalid Tap",
+				"Hand detected! Please use your NFC card to proceed.",
+				[
+					{
+						text: "OK",
+						onPress: () => console.log("Hand detected - user notified"),
+					},
+				]
+			);
+			return; // Stop the process
 		}
+
+		// If not a hand, proceed with scanning
+		setTapCount((prevCount) => prevCount + 1);
+		showMessage({
+			message: "Card Detected",
+			description: "Hang on while we scan this!",
+			type: "success",
+			backgroundColor: "#17CE89",
+			color: "#fff",
+			textStyle: { fontFamily: "GilroyMedium" },
+		});
+
+		// Start scanning process
+		setIsScanning(true);
+
+		// After 10 seconds, navigate to the success screen
+		setTimeout(() => {
+			setIsScanning(false); // Optional: Reset scanning state
+			router.push("/(routes)/success");
+		}, 10000); // 10 seconds
 	};
 
 	const handleCancel = () => {
@@ -81,7 +71,7 @@ export default function PowerDetailScreen() {
 				<Spacer size={28} />
 			</ScrollView>
 
-			<View
+			<TouchableOpacity
 				style={{
 					justifyContent: "center",
 					backgroundColor: "#ffffff",
@@ -90,6 +80,7 @@ export default function PowerDetailScreen() {
 					borderTopLeftRadius: 16,
 					borderTopRightRadius: 16,
 				}}
+				onPress={handleTap}
 			>
 				<Image
 					style={{ alignSelf: "center", height: 140, width: 140 }}
@@ -104,15 +95,15 @@ export default function PowerDetailScreen() {
 				>
 					Hold and tap on your NFC card here to scan
 				</Text>
-			</View>
+			</TouchableOpacity>
 
 			<View style={{ padding: 20, backgroundColor: "#ffffff" }}>
-				<TouchableOpacity
-					style={styles.btnContainerOutline}
-					onPress={handleNfcScan}
-				>
+				<TouchableOpacity style={styles.btnContainerOutline}>
 					{isScanning ? (
-						<ActivityIndicator size='small' color='#17CE89' />
+						<View style={{ flexDirection: "row", gap: 5 }}>
+							<Text style={styles.btnOutlineContent}>Scanning</Text>
+							<ActivityIndicator size='small' color='#17CE89' />
+						</View>
 					) : (
 						<Text style={styles.btnOutlineContent}>Start Scan</Text>
 					)}
@@ -127,7 +118,7 @@ export default function PowerDetailScreen() {
 					{buttonSpinner ? (
 						<ActivityIndicator size='small' color='#ffffff' />
 					) : (
-						<Text style={styles.btnOutlineContent}>Cancel</Text>
+						<Text style={styles.btnOutlineContent}>Cancelx</Text>
 					)}
 				</TouchableOpacity>
 			</View>
