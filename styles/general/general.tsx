@@ -14,6 +14,22 @@ export const styles = StyleSheet.create({
 		justifyContent: "center",
 		flex: 1,
 	},
+	shadowTop: {
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.8,
+		shadowRadius: 4,
+		elevation: 5, // Android shadow
+	},
+
+	overlayTop: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark transparent background
+	},
+
 	logo: {
 		width: wp("70%"),
 		// height: hp("50%"),

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
 	View,
 	Text,
@@ -20,6 +20,11 @@ export default function PowerDetailScreen() {
 	const [tapCount, setTapCount] = useState(0);
 
 	const handleTap = () => {
+		// Prevent multiple taps when scanning is in progress
+		if (isScanning) {
+			return; // Do nothing if already scanning
+		}
+
 		// Simulate hand detection
 		const isHand = Math.random() > 1; // 50% chance of detecting a hand
 
@@ -81,6 +86,7 @@ export default function PowerDetailScreen() {
 					borderTopRightRadius: 16,
 				}}
 				onPress={handleTap}
+				disabled={isScanning} // Disable button during scan
 			>
 				<Image
 					style={{ alignSelf: "center", height: 140, width: 140 }}
@@ -105,7 +111,7 @@ export default function PowerDetailScreen() {
 							<ActivityIndicator size='small' color='#17CE89' />
 						</View>
 					) : (
-						<Text style={styles.btnOutlineContent}>Start Scan</Text>
+						<Text style={styles.btnOutlineContent}>Begin Scan</Text>
 					)}
 				</TouchableOpacity>
 
@@ -118,7 +124,7 @@ export default function PowerDetailScreen() {
 					{buttonSpinner ? (
 						<ActivityIndicator size='small' color='#ffffff' />
 					) : (
-						<Text style={styles.btnOutlineContent}>Cancelx</Text>
+						<Text style={styles.btnOutlineContent}>Cancel</Text>
 					)}
 				</TouchableOpacity>
 			</View>

@@ -1,5 +1,11 @@
-import React, { useState, useEffect, forwardRef } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import React, { useState, useEffect, forwardRef, useCallback } from "react";
+import {
+	View,
+	Text,
+	TouchableOpacity,
+	ActivityIndicator,
+	Dimensions,
+} from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import axios from "axios";
 import { styles } from "@/styles/general/general";
@@ -17,12 +23,15 @@ type ProductBottomSheetProps = {
 	onProductSelects: (selectedProducts: Product[]) => void;
 };
 
+const { height: screenHeight } = Dimensions.get("window");
+
 const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 	({ onProductSelects }, ref) => {
 		const [products, setProducts] = useState<Product[]>([]);
 		const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 		const [loading, setLoading] = useState<boolean>(true);
 		const [error, setError] = useState<string | null>(null);
+		const [bottomSheetHeight, setBottomSheetHeight] = useState(0); // Track bottom sheet height
 
 		// Fetch products from the API
 		const fetchProducts = async () => {
@@ -70,6 +79,14 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 		const isProductSelected = (product: Product) =>
 			selectedProducts.some((p) => p.id === product.id);
 
+		// Handle BottomSheet state change
+		const handleSheetChanges = useCallback((index: number) => {
+			// Update the height based on the snap point
+			const snapPoint = index === 0 ? "50%" : "70%"; // Modify as per your snap points
+			const newHeight = snapPoint === "50%" ? 0.5 : 0.7;
+			setBottomSheetHeight(screenHeight * newHeight);
+		}, []);
+
 		// Render loading spinner
 		if (loading) {
 			return (
@@ -78,6 +95,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 					ref={ref}
 					index={-1} // Closed by default
 					snapPoints={["50%", "70%"]}
+					onChange={handleSheetChanges}
 				>
 					<View style={{ padding: 20, alignItems: "center" }}>
 						<ActivityIndicator size='large' color='#0000ff' />
@@ -94,6 +112,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 					ref={ref}
 					index={-1} // Closed by default
 					snapPoints={["50%", "70%"]}
+					onChange={handleSheetChanges}
 				>
 					<View style={{ padding: 20, alignItems: "center" }}>
 						<Text>{error}</Text>
@@ -109,6 +128,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 				ref={ref}
 				index={-1} // Closed by default
 				snapPoints={["50%", "70%"]}
+				onChange={handleSheetChanges}
 			>
 				<View style={{ flex: 1, paddingHorizontal: 20 }}>
 					<BottomSheetScrollView
@@ -133,10 +153,6 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 								/>
 								<View style={{ marginLeft: 10 }}>
 									<Text style={styles.info}>{product.name}</Text>
-									{/* <Text style={styles.info}>{`Cost: ${product.cost}`}</Text>
-									<Text
-										style={styles.info}
-									>{`Quantity: ${product.quantity}`}</Text> */}
 								</View>
 							</TouchableOpacity>
 						))}
