@@ -6,6 +6,7 @@ import {
 	ScrollView,
 	ActivityIndicator,
 	SafeAreaView,
+	TextInput,
 } from "react-native";
 import { styles } from "@/styles/general/general";
 import CustomHeader from "@/components/CustomUIComponets/CustomHeader";
@@ -79,6 +80,7 @@ export default function PrepaidScreen() {
 	const [userId, setUserId] = useState<string | null>(null); // New state for userId
 	const [user, setUser] = useState<User | null>(null);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
+	const [date, setDate] = useState("");
 
 	const campaigns = [
 		{ id: "1", name: "Campaign Alpha", price: "500" },
@@ -164,6 +166,7 @@ export default function PrepaidScreen() {
 			campaign_name: selectedCampaign?.name || "",
 			vendor_name: selectedCampaign?.vendor || "",
 			amount: totalCost, // Set the calculated total cost here
+			date,
 			status: true,
 			pub_date: new Date().toISOString(),
 		};
@@ -232,18 +235,6 @@ export default function PrepaidScreen() {
 		productBottomSheetRef.current?.close();
 	};
 
-	// Clear all selections
-	const clearSelections = () => {
-		setSelectedUsers([]);
-		setSelectedCampaign(null);
-		setSelectedCampaigns([]);
-		setSelectedProducts([]); // Reset the selected products state
-	};
-
-	// useEffect(() => {
-	// 	fetchUsers();
-	// }, []);
-
 	return (
 		<SafeAreaView style={styles.container}>
 			<CustomHeader title='Create new payment' showHistory={true} />
@@ -303,6 +294,23 @@ export default function PrepaidScreen() {
 						</Text>
 					</TouchableOpacity>
 					<Spacer size={16} />
+				</View>
+				<View style={[styles.cardContainer]}>
+					<Text style={styles.info}>Enter Date</Text>
+					<Spacer size={6} />
+					<TextInput
+						style={{
+							borderWidth: 1,
+							borderColor: "#ccc",
+							borderRadius: 8,
+							padding: 10,
+							fontSize: 16,
+						}}
+						placeholder='YYYY-MM-DD'
+						value={date}
+						onChangeText={setDate}
+						keyboardType='default'
+					/>
 				</View>
 				<View
 					style={{

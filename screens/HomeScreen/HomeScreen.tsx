@@ -21,7 +21,6 @@ import { Spacer } from "@/components/CustomUIComponets/Spacer";
 import { router } from "expo-router";
 import { styles } from "../../styles/general/general";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type User = {
@@ -279,7 +278,7 @@ export default function HomeScreen() {
 									<Spacer size={10} />
 									<Text style={styles.bottomText}>Date</Text>
 									<Text style={styles.topText}>
-										{new Date(payment.pub_date).toLocaleString() || "N/A"}
+										{new Date(payment.date).toLocaleString() || "N/A"}
 									</Text>
 								</View>
 							</TouchableOpacity>

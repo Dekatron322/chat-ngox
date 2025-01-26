@@ -158,7 +158,7 @@ export default function TransactionScreen() {
 								<Spacer size={10} />
 								<Text style={styles.bottomText}>Date</Text>
 								<Text style={styles.topText}>
-									{new Date(payment.pub_date).toLocaleString() || "N/A"}
+									{new Date(payment.date).toLocaleString() || "N/A"}
 								</Text>
 							</View>
 						</TouchableOpacity>
