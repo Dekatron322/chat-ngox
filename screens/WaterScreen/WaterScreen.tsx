@@ -18,6 +18,7 @@ import BeneficiaryBottomSheet from "@/components/CustomUIComponets/BeneficiaryBo
 import CampaignBottomSheet from "@/components/CustomUIComponets/CampaignBottomSheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 type User = {
 	id?: string;
@@ -80,7 +81,6 @@ export default function PrepaidScreen() {
 	const [userId, setUserId] = useState<string | null>(null); // New state for userId
 	const [user, setUser] = useState<User | null>(null);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
-	const [date, setDate] = useState("");
 
 	const campaigns = [
 		{ id: "1", name: "Campaign Alpha", price: "500" },
@@ -91,6 +91,16 @@ export default function PrepaidScreen() {
 	const beneficiaryBottomSheetRef = useRef<BottomSheet>(null);
 	const campaignBottomSheetRef = useRef<BottomSheet>(null);
 	const productBottomSheetRef = useRef<BottomSheet>(null);
+
+	const [date, setDate] = useState(new Date());
+	const [show, setShow] = useState(false);
+
+	const onChange = (event: any, selectedDate?: Date) => {
+		if (selectedDate) {
+			setDate(selectedDate);
+		}
+		setShow(false);
+	};
 
 	// Fetch users from API
 	const fetchUserData = async () => {
@@ -293,24 +303,25 @@ export default function PrepaidScreen() {
 								: "Select Products"}
 						</Text>
 					</TouchableOpacity>
-					<Spacer size={16} />
 				</View>
 				<View style={[styles.cardContainer]}>
-					<Text style={styles.info}>Enter Date</Text>
+					<Text style={styles.info}>Select Date</Text>
 					<Spacer size={6} />
-					<TextInput
-						style={{
-							borderWidth: 1,
-							borderColor: "#ccc",
-							borderRadius: 8,
-							padding: 10,
-							fontSize: 16,
-						}}
-						placeholder='YYYY-MM-DD'
-						value={date}
-						onChangeText={setDate}
-						keyboardType='default'
-					/>
+					<TouchableOpacity
+						onPress={() => setShow(true)}
+						style={styles.enterAmount}
+					>
+						<Text>{date.toDateString()}</Text>
+					</TouchableOpacity>
+
+					{show && (
+						<DateTimePicker
+							value={date}
+							mode='date'
+							display='default'
+							onChange={onChange}
+						/>
+					)}
 				</View>
 				<View
 					style={{

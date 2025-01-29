@@ -278,7 +278,7 @@ export default function HomeScreen() {
 									<Spacer size={10} />
 									<Text style={styles.bottomText}>Date</Text>
 									<Text style={styles.topText}>
-										{new Date(payment.date).toLocaleString() || "N/A"}
+										{new Date(payment.date).toLocaleDateString() || "N/A"}
 									</Text>
 								</View>
 							</TouchableOpacity>
