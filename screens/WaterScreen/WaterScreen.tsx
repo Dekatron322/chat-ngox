@@ -19,6 +19,7 @@ import CampaignBottomSheet from "@/components/CustomUIComponets/CampaignBottomSh
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { showMessage } from "react-native-flash-message";
 
 type User = {
 	id?: string;
@@ -106,18 +107,15 @@ export default function PrepaidScreen() {
 	const fetchUserData = async () => {
 		setLoading(true);
 		try {
-			// Retrieve user ID from AsyncStorage
 			const fetchedUserId = await AsyncStorage.getItem("userId");
 			if (!fetchedUserId) {
 				console.error("No user ID found. Redirecting to login...");
-				router.push("/login"); // Navigate to login if userId is missing
+				router.push("/login");
 				return;
 			}
 
-			// Log the retrieved userId
 			console.log("Retrieved user_id from AsyncStorage:", fetchedUserId);
 
-			// Fetch user data using the retrieved userId
 			const response = await fetch(
 				`https://api.shalomescort.org/vendor/${fetchedUserId}/`
 			);
@@ -144,12 +142,10 @@ export default function PrepaidScreen() {
 		}
 	};
 
-	// Prepare the payload for the API request
 	const preparePayload = () => {
-		// Calculate the total cost of selected products
 		const totalCost = selectedProducts.reduce((acc, product) => {
-			const cost = parseFloat(product.cost) || 0; // Ensure cost is a valid number
-			const quantity = product.quantity || 0; // Ensure quantity is a valid number
+			const cost = parseFloat(product.cost) || 0;
+			const quantity = product.quantity || 0;
 			return acc + cost * quantity;
 		}, 0);
 
@@ -183,6 +179,43 @@ export default function PrepaidScreen() {
 	};
 
 	const handlePayment = async () => {
+		// Validation: Check if required fields are filled
+		if (!selectedCampaign) {
+			showMessage({
+				message: "Error",
+				description: "Please select a campaign.",
+				type: "danger",
+				backgroundColor: "#FF3B30", // Optional color customization
+				textStyle: { fontFamily: "GilroyMedium" },
+			});
+
+			return;
+		}
+
+		if (selectedUsers.length === 0) {
+			showMessage({
+				message: "Error",
+				description: "Please select a beneficiary.",
+				type: "danger",
+				backgroundColor: "#FF3B30", // Optional color customization
+				textStyle: { fontFamily: "GilroyMedium" },
+			});
+
+			return;
+		}
+
+		if (selectedProducts.length === 0) {
+			showMessage({
+				message: "Error",
+				description: "Please select at least one product.",
+				type: "danger",
+				backgroundColor: "#FF3B30", // Optional color customization
+				textStyle: { fontFamily: "GilroyMedium" },
+			});
+
+			return;
+		}
+
 		if (!userId) {
 			console.error("User ID is missing");
 			router.push("/login"); // Redirect to login if userId is missing
@@ -230,9 +263,19 @@ export default function PrepaidScreen() {
 	};
 
 	// Handle campaign selection (single)
-	const handleCampaignSelect = (campaign: Campaign) => {
-		setSelectedCampaign(campaign);
-		campaignBottomSheetRef.current?.close();
+	const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
+		null
+	);
+
+	const handleCampaignSelect = async (campaign: Campaign) => {
+		try {
+			await AsyncStorage.setItem("selectedCampaignId", campaign.id);
+			setSelectedCampaignId(campaign.id);
+			setSelectedCampaign(campaign);
+			campaignBottomSheetRef.current?.close();
+		} catch (error) {
+			console.error("Error saving campaign ID:", error);
+		}
 	};
 
 	// Handle product selection (multiple products)
@@ -252,6 +295,22 @@ export default function PrepaidScreen() {
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<Spacer size={20} />
 				<View style={[styles.cardContainer]}>
+					<Text style={styles.info}>Name of Campaign</Text>
+					<Spacer size={6} />
+					<TouchableOpacity
+						onPress={() => {
+							beneficiaryBottomSheetRef.current?.close();
+							campaignBottomSheetRef.current?.expand();
+							productBottomSheetRef.current?.close();
+						}}
+					>
+						<Text style={styles.enterAmount}>
+							{selectedCampaign ? selectedCampaign.name : "Select a Campaign"}
+						</Text>
+					</TouchableOpacity>
+				</View>
+
+				<View style={[styles.cardContainer]}>
 					<Text style={styles.info}>Name Of Beneficiary</Text>
 					<Spacer size={6} />
 					<TouchableOpacity
@@ -265,22 +324,6 @@ export default function PrepaidScreen() {
 							{selectedUsers.length > 0
 								? `${selectedUsers[0].first_name} ${selectedUsers[0].last_name}`
 								: "Select a Beneficiary"}
-						</Text>
-					</TouchableOpacity>
-				</View>
-
-				<View style={[styles.cardContainer]}>
-					<Text style={styles.info}>Name Of Campaign</Text>
-					<Spacer size={6} />
-					<TouchableOpacity
-						onPress={() => {
-							beneficiaryBottomSheetRef.current?.close();
-							campaignBottomSheetRef.current?.expand();
-							productBottomSheetRef.current?.close();
-						}}
-					>
-						<Text style={styles.enterAmount}>
-							{selectedCampaign ? selectedCampaign.name : "Select a Campaign"}
 						</Text>
 					</TouchableOpacity>
 				</View>
@@ -447,7 +490,6 @@ export default function PrepaidScreen() {
 
 				{/* Total Cost */}
 			</ScrollView>
-
 			<View style={{ padding: 20, backgroundColor: "#ffffff" }}>
 				<View
 					style={{
@@ -483,28 +525,25 @@ export default function PrepaidScreen() {
 					)}
 				</TouchableOpacity>
 			</View>
-
 			<BeneficiaryBottomSheet
 				ref={beneficiaryBottomSheetRef}
-				users={users}
-				loading={loading}
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 				onUserSelect={handleUserSelect}
-				selectedUsers={selectedUsers}
+				selectedUser={selectedUsers[0]} // Assuming single selection
+				selectedCampaignId={selectedCampaignId} // Pass selectedCampaignId
 			/>
 
-			{/* Campaign BottomSheet */}
 			<CampaignBottomSheet
 				ref={campaignBottomSheetRef}
 				campaigns={campaigns}
 				onCampaignSelect={handleCampaignSelect}
 			/>
-
 			{/* Product BottomSheet */}
 			<ProductBottomSheet
 				ref={productBottomSheetRef}
 				onProductSelects={handleProductSelects}
+				selectedCampaignId={selectedCampaignId}
 			/>
 		</SafeAreaView>
 	);

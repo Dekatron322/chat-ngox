@@ -21,12 +21,13 @@ type Product = {
 
 type ProductBottomSheetProps = {
 	onProductSelects: (selectedProducts: Product[]) => void;
+	selectedCampaignId: string | null;
 };
 
 const { height: screenHeight } = Dimensions.get("window");
 
 const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
-	({ onProductSelects }, ref) => {
+	({ onProductSelects, selectedCampaignId }, ref) => {
 		const [products, setProducts] = useState<Product[]>([]);
 		const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 		const [loading, setLoading] = useState<boolean>(true);
@@ -35,24 +36,31 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 
 		// Fetch products from the API
 		const fetchProducts = async () => {
+			if (!selectedCampaignId) {
+				return;
+			}
+
 			try {
+				setLoading(true);
 				const response = await axios.get(
-					"https://api.shalomescort.org/product/product/"
+					`https://api.shalomescort.org/project/project/${selectedCampaignId}/`
 				);
 				const data = response.data;
 
-				// Format data to match the `Product` type
-				const formattedProducts = data.map((product: any) => ({
-					id: product.id,
-					name: product.tag, // Adjusted for the desired property
-					cost: product.cost,
-					quantity: product.quantity || "N/A",
-					tag: product.tag,
-				}));
+				// Extract products from the "products" array
+				const formattedProducts =
+					data?.products?.map((product: any) => ({
+						id: product.id || Math.random().toString(), // Ensure unique ID
+						name: product.tag,
+						cost: product.cost,
+						quantity: parseInt(product.quantity) || 0,
+						tag: product.tag || product.name, // Use tag if available, else fallback to name
+					})) || [];
 
 				setProducts(formattedProducts);
 			} catch (err) {
 				setError("Failed to load products. Please try again later.");
+				console.error("Error fetching products:", err);
 			} finally {
 				setLoading(false);
 			}
@@ -60,7 +68,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 
 		useEffect(() => {
 			fetchProducts();
-		}, []);
+		}, [selectedCampaignId]);
 
 		const toggleProductSelection = (product: Product) => {
 			const isSelected = selectedProducts.some((p) => p.id === product.id);

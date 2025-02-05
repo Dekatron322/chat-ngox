@@ -7,6 +7,7 @@ import {
 	ActivityIndicator,
 } from "react-native";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { styles } from "@/styles/general/general";
 
@@ -31,8 +32,16 @@ const CampaignBottomSheet = forwardRef<BottomSheet, CampaignBottomSheetProps>(
 		// Fetch campaigns from the API
 		const fetchCampaigns = async () => {
 			try {
+				// Retrieve `user_id` from AsyncStorage
+				const user_id = await AsyncStorage.getItem("userId");
+
+				if (!user_id) {
+					throw new Error("User ID not found. Please log in again.");
+				}
+
+				// Fetch campaigns using the `user_id`
 				const response = await axios.get(
-					"https://api.shalomescort.org/project/project/"
+					`https://api.shalomescort.org/project/project/filter/by-user-id/${user_id}/`
 				);
 				const data = response.data;
 
@@ -45,6 +54,7 @@ const CampaignBottomSheet = forwardRef<BottomSheet, CampaignBottomSheetProps>(
 				setCampaigns(formattedCampaigns); // Set campaigns in state
 			} catch (err) {
 				setError("Failed to load campaigns. Please try again later.");
+				console.error("Error fetching campaigns:", err);
 			} finally {
 				setLoading(false);
 			}
@@ -53,6 +63,18 @@ const CampaignBottomSheet = forwardRef<BottomSheet, CampaignBottomSheetProps>(
 		useEffect(() => {
 			fetchCampaigns();
 		}, []);
+
+		// Handle campaign selection
+		const handleCampaignSelect = async (campaign: Campaign) => {
+			// Save the selected campaign ID to AsyncStorage
+			await AsyncStorage.setItem("selectedCampaignId", campaign.id);
+
+			// Log the selected campaign ID
+			console.log("Selected Campaign ID:", campaign.id);
+
+			// Call the `onCampaignSelect` prop
+			onCampaignSelect(campaign);
+		};
 
 		if (loading) {
 			return (
@@ -97,7 +119,7 @@ const CampaignBottomSheet = forwardRef<BottomSheet, CampaignBottomSheetProps>(
 							<TouchableOpacity
 								key={campaign.id}
 								style={styles.cardContainer}
-								onPress={() => onCampaignSelect(campaign)}
+								onPress={() => handleCampaignSelect(campaign)}
 							>
 								<Text style={styles.info}>{campaign.name}</Text>
 							</TouchableOpacity>
