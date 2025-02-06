@@ -170,10 +170,10 @@ const BeneficiaryBottomSheet = forwardRef<
 												gap: 8,
 											}}
 										>
-											<Image
+											{/* <Image
 												source={require("@/assets/images/Avatar (1).png")}
 												style={{ width: 40, height: 40, borderRadius: 20 }}
-											/>
+											/> */}
 											<View>
 												<Text>{`${item.first_name} ${item.last_name}`}</Text>
 												<Text>{item.beneficiary_id}</Text>

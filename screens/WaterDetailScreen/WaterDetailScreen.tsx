@@ -25,24 +25,22 @@ export default function PowerDetailScreen() {
 			return; // Do nothing if already scanning
 		}
 
-		// Simulate hand detection
-		const isHand = Math.random() > 1; // 50% chance of detecting a hand
+		// Simulate card detection
+		const isCardDetected = true; // Assume a card is always detected
 
-		if (isHand) {
-			Alert.alert(
-				"Invalid Tap",
-				"Hand detected! Please use your NFC card to proceed.",
-				[
-					{
-						text: "OK",
-						onPress: () => console.log("Hand detected - user notified"),
-					},
-				]
-			);
+		if (!isCardDetected) {
+			showMessage({
+				message: "Invalid Tap",
+				description: "Please use your NFC card to proceed!",
+				type: "danger",
+				backgroundColor: "#FF3B30",
+				color: "#fff",
+				textStyle: { fontFamily: "GilroyMedium" },
+			});
 			return; // Stop the process
 		}
 
-		// If not a hand, proceed with scanning
+		// If a card is detected, proceed with scanning
 		setTapCount((prevCount) => prevCount + 1);
 		showMessage({
 			message: "Card Detected",

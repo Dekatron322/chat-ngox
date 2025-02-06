@@ -155,7 +155,6 @@ export const styles = StyleSheet.create({
 	},
 	titleText: { color: "#171D19", fontFamily: "LufgaMedium", lineHeight: 24 },
 	cardContainer: {
-		borderRadius: 8,
 		backgroundColor: "#FAFAFA",
 		paddingHorizontal: 20,
 		paddingVertical: 10,
@@ -451,7 +450,7 @@ export const styles = StyleSheet.create({
 	info: {
 		fontFamily: "LufgaRegular",
 		fontSize: 14,
-		color: "#00000066",
+		color: "#00000088",
 	},
 	posId: {
 		fontFamily: "LufgaRegular",

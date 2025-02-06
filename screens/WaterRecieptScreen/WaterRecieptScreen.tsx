@@ -126,7 +126,7 @@ export default function PowerRecieptScreen() {
 									{paymentDetails.beneficiarys[0]?.last_name || "N/A"}
 								</Text>
 							</View>
-							<View>
+							{/* <View>
 								<Text
 									style={{
 										color: "#707FA3",
@@ -140,7 +140,7 @@ export default function PowerRecieptScreen() {
 								<Text style={{ fontFamily: "GilroyMedium", color: "#25396F" }}>
 									NGN {paymentDetails.products[0]?.amount || "N/A"}
 								</Text>
-							</View>
+							</View> */}
 						</View>
 						<Spacer size={20} />
 
