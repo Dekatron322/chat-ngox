@@ -6,7 +6,6 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	ScrollView,
-	Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "@/styles/general/general";
@@ -19,28 +18,24 @@ export default function PowerDetailScreen() {
 	const [isScanning, setIsScanning] = useState(false);
 	const [tapCount, setTapCount] = useState(0);
 
-	const handleTap = () => {
-		// Prevent multiple taps when scanning is in progress
-		if (isScanning) {
-			return; // Do nothing if already scanning
-		}
+	const handleTap = (event) => {
+		const { locationX, locationY } = event.nativeEvent;
+		// Simulate shape detection logic
+		const isHandDetected = detectHandShape(locationX, locationY);
 
-		// Simulate card detection
-		const isCardDetected = true; // Assume a card is always detected
-
-		if (!isCardDetected) {
+		if (isHandDetected) {
 			showMessage({
 				message: "Invalid Tap",
-				description: "Please use your NFC card to proceed!",
+				description: "Please try again!",
 				type: "danger",
 				backgroundColor: "#FF3B30",
 				color: "#fff",
 				textStyle: { fontFamily: "GilroyMedium" },
 			});
-			return; // Stop the process
+			return; // Stop the process if a hand is detected
 		}
 
-		// If a card is detected, proceed with scanning
+		// If a hand is NOT detected, proceed with scanning
 		setTapCount((prevCount) => prevCount + 1);
 		showMessage({
 			message: "Card Detected",
@@ -59,6 +54,13 @@ export default function PowerDetailScreen() {
 			setIsScanning(false); // Optional: Reset scanning state
 			router.push("/(routes)/success");
 		}, 10000); // 10 seconds
+	};
+
+	const detectHandShape = (x, y) => {
+		// Simulate hand detection logic
+		// For example, assume a hand touch is detected if the touch area is large
+		const touchAreaSize = x * y; // Placeholder for touch area size
+		return touchAreaSize > 2000; // Return true if the touch area is large (hand)
 	};
 
 	const handleCancel = () => {
@@ -97,7 +99,7 @@ export default function PowerDetailScreen() {
 						fontFamily: "GilroyMedium",
 					}}
 				>
-					Hold and tap on your NFC card here to scan
+					Hold and tap your NFC card here to scan
 				</Text>
 			</TouchableOpacity>
 

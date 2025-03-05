@@ -32,7 +32,8 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 		const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 		const [loading, setLoading] = useState<boolean>(true);
 		const [error, setError] = useState<string | null>(null);
-		const [bottomSheetHeight, setBottomSheetHeight] = useState(0); // Track bottom sheet height
+		const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
+		const [isSheetOpen, setIsSheetOpen] = useState(false); // Track if the sheet is open
 
 		// Fetch products from the API
 		const fetchProducts = async () => {
@@ -43,7 +44,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			try {
 				setLoading(true);
 				const response = await axios.get(
-					`https://api.shalomescort.org/project/project/${selectedCampaignId}/`
+					`https://api.donorsrec.chats.cash/project/project/${selectedCampaignId}/`
 				);
 				const data = response.data;
 
@@ -70,6 +71,13 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			fetchProducts();
 		}, [selectedCampaignId]);
 
+		// Log products data when the sheet is opened
+		useEffect(() => {
+			if (isSheetOpen) {
+				console.log("Products data:", products);
+			}
+		}, [isSheetOpen, products]);
+
 		const toggleProductSelection = (product: Product) => {
 			const isSelected = selectedProducts.some((p) => p.id === product.id);
 			let updatedSelections;
@@ -89,6 +97,7 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 
 		// Handle BottomSheet state change
 		const handleSheetChanges = useCallback((index: number) => {
+			setIsSheetOpen(index !== -1); // Update sheet open state
 			// Update the height based on the snap point
 			const snapPoint = index === 0 ? "50%" : "70%"; // Modify as per your snap points
 			const newHeight = snapPoint === "50%" ? 0.5 : 0.7;
@@ -134,8 +143,8 @@ const ProductBottomSheet = forwardRef<BottomSheet, ProductBottomSheetProps>(
 			<BottomSheet
 				enablePanDownToClose={true}
 				ref={ref}
-				index={-1} // Closed by default
-				snapPoints={["50%", "70%"]}
+				index={isSheetOpen ? 0 : -1} // Keep sheet open if it's already open
+				snapPoints={["70%", "80%"]}
 				onChange={handleSheetChanges}
 			>
 				<View style={{ flex: 1, paddingHorizontal: 20 }}>

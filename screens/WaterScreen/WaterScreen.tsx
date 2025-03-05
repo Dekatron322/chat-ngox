@@ -117,7 +117,7 @@ export default function PrepaidScreen() {
 			console.log("Retrieved user_id from AsyncStorage:", fetchedUserId);
 
 			const response = await fetch(
-				`https://api.shalomescort.org/vendor/${fetchedUserId}/`
+				`https://api.donorsrec.chats.cash/vendor/${fetchedUserId}/`
 			);
 			if (!response.ok) {
 				throw new Error(`Failed to fetch user data: ${response.statusText}`);
@@ -126,7 +126,7 @@ export default function PrepaidScreen() {
 			const data = await response.json();
 
 			// Log the fetched data
-			console.log("Fetched user data:", data);
+			// console.log("Fetched user data:", data);
 
 			// Set user information
 			const { id, name, user_id, email, transactions = [] } = data;
@@ -227,7 +227,7 @@ export default function PrepaidScreen() {
 		try {
 			setButtonSpinner(true); // Show spinner while making the request
 			const response = await fetch(
-				`https://api.shalomescort.org/vendor/add-payment-to-vendor/${userId}/`,
+				`https://api.donorsrec.chats.cash/vendor/add-payment-to-vendor/${userId}/`,
 				{
 					method: "POST",
 					headers: {
@@ -285,7 +285,7 @@ export default function PrepaidScreen() {
 			quantity: 1, // Set quantity to 1 by default
 		}));
 		setSelectedProducts(updatedProducts); // Update the selected products state
-		productBottomSheetRef.current?.close();
+		// productBottomSheetRef.current?.close();
 	};
 
 	return (

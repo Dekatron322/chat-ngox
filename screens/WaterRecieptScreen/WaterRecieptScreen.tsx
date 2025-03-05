@@ -26,7 +26,7 @@ export default function PowerRecieptScreen() {
 			}
 
 			const response = await fetch(
-				`https://api.shalomescort.org/payment/payment/${paymentId}/`
+				`https://api.donorsrec.chats.cash/payment/payment/${paymentId}/`
 			);
 			if (!response.ok) {
 				throw new Error("Failed to fetch payment details");

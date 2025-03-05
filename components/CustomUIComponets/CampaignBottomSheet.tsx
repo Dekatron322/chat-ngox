@@ -41,7 +41,7 @@ const CampaignBottomSheet = forwardRef<BottomSheet, CampaignBottomSheetProps>(
 
 				// Fetch campaigns using the `user_id`
 				const response = await axios.get(
-					`https://api.shalomescort.org/project/project/filter/by-user-id/${user_id}/`
+					`https://api.donorsrec.chats.cash/project/project/filter/by-user-id/${user_id}/`
 				);
 				const data = response.data;
 

@@ -66,16 +66,12 @@ const BeneficiaryBottomSheet = forwardRef<
 
 					// Fetch campaign details from API
 					const response = await axios.get(
-						`https://api.shalomescort.org/project/project/${selectedCampaignId}/`
+						`https://api.donorsrec.chats.cash/project/project/${selectedCampaignId}/`
 					);
 					const data = response.data;
 
-					console.log("API Response:", data);
-
 					// Extract beneficiaries directly from the beneficiarys array
 					const beneficiariesArray = data?.beneficiarys || [];
-
-					console.log("Extracted Beneficiaries:", beneficiariesArray);
 
 					setBeneficiaries(beneficiariesArray);
 				} catch (error) {

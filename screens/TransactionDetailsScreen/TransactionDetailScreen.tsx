@@ -51,7 +51,7 @@ export default function TransactionScreen() {
 			}
 
 			const response = await fetch(
-				`https://api.shalomescort.org/vendor/${userId}/`
+				`https://api.donorsrec.chats.cash/vendor/${userId}/`
 			);
 			if (!response.ok) {
 				throw new Error(`Failed to fetch user data: ${response.statusText}`);

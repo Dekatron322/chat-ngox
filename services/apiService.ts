@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://api.shalomescort.org";
+const API_BASE_URL = "https://api.donorsrec.chats.cash";
 
 // Create an Axios instance
 const apiClient = axios.create({

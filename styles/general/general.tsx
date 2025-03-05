@@ -450,7 +450,7 @@ export const styles = StyleSheet.create({
 	info: {
 		fontFamily: "LufgaRegular",
 		fontSize: 14,
-		color: "#00000088",
+		color: "#000000",
 	},
 	posId: {
 		fontFamily: "LufgaRegular",
@@ -535,6 +535,7 @@ export const styles = StyleSheet.create({
 		height: "auto",
 		borderRadius: 8,
 		width: "100%",
+		color: "#25396F",
 		fontFamily: "GilroyMedium",
 		backgroundColor: "#F5F6F8",
 		paddingHorizontal: 16,
