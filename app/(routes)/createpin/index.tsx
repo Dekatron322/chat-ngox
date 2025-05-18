@@ -9,16 +9,23 @@ import {
 	StatusBar,
 	NativeSyntheticEvent,
 	TextInputKeyPressEventData,
-	Modal,
-	SafeAreaView,
+	StyleSheet,
 } from "react-native";
-import React, { useState, useRef, RefObject } from "react";
+import React, {
+	useState,
+	useRef,
+	useCallback,
+	useMemo,
+	RefObject,
+} from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { styles } from "@/styles/onboarding/onboarding";
 import { Spacer } from "@/components/CustomUIComponets/Spacer";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { showMessage } from "react-native-flash-message";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 
 export default function SignUp() {
 	// --- Form states ---
@@ -35,14 +42,23 @@ export default function SignUp() {
 	const [pin, setPin] = useState<string[]>(["", "", "", ""]);
 	const [pinSpinner, setPinSpinner] = useState(false);
 	const [userId, setUserId] = useState<number | null>(null);
-	const [showPinModal, setShowPinModal] = useState(false);
 
-	// refs for PIN inputs
+	// refs for PIN boxes
 	const pinRefs = useRef<Array<RefObject<TextInput>>>(
 		Array.from({ length: 4 }, () => React.createRef<TextInput>())
 	);
 
-	// handle signup
+	const bottomSheetRef = useRef<BottomSheet>(null);
+	const snapPoints = useMemo(() => ["35%"], []);
+
+	const openBottomSheet = useCallback(() => {
+		bottomSheetRef.current?.expand();
+	}, []);
+	const closeBottomSheet = useCallback(() => {
+		bottomSheetRef.current?.close();
+	}, []);
+
+	// handle signup as before...
 	const handleSignUp = async () => {
 		if (!firstName || !lastName || !email || !meterNumber || !password) {
 			showMessage({
@@ -54,7 +70,6 @@ export default function SignUp() {
 			});
 			return;
 		}
-
 		setButtonSpinner(true);
 		try {
 			const payload = {
@@ -74,7 +89,6 @@ export default function SignUp() {
 			);
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.message || "Failed to sign up");
-
 			setUserId(data.id);
 			showMessage({
 				message: "Success",
@@ -84,14 +98,7 @@ export default function SignUp() {
 				color: "#fff",
 				textStyle: { fontFamily: "GilroyMedium" },
 			});
-
-			// open the PIN modal
-			setShowPinModal(true);
-			// reset PIN inputs & focus first
-			setPin(["", "", "", ""]);
-			setTimeout(() => {
-				pinRefs.current[0].current?.focus();
-			}, 100);
+			openBottomSheet();
 		} catch (err: any) {
 			showMessage({
 				message: "Error",
@@ -105,26 +112,34 @@ export default function SignUp() {
 		}
 	};
 
-	// PIN input handlers
-	const onPinChange = (value: string, idx: number) => {
-		if (!/^\d?$/.test(value)) return; // only digits
-		const newArr = [...pin];
+	// move focus on digit entry/backspace
+	const onPinChange = (
+		value: string,
+		idx: number,
+		arr: string[],
+		refs: Array<RefObject<TextInput>>
+	) => {
+		const newArr = [...arr];
 		newArr[idx] = value;
 		setPin(newArr);
 		if (value && idx < 3) {
-			pinRefs.current[idx + 1].current?.focus();
+			refs[idx + 1].current?.focus();
 		}
 	};
 	const onPinKeyPress = (
 		e: NativeSyntheticEvent<TextInputKeyPressEventData>,
-		idx: number
+		idx: number,
+		refs: Array<RefObject<TextInput>>
 	) => {
-		if (e.nativeEvent.key === "Backspace" && !pin[idx] && idx > 0) {
-			pinRefs.current[idx - 1].current?.focus();
+		if (
+			e.nativeEvent.key === "Backspace" &&
+			idx > 0 &&
+			!e.currentTarget?.props.value
+		) {
+			refs[idx - 1].current?.focus();
 		}
 	};
 
-	// create PIN API
 	const handleCreatePin = async () => {
 		if (pin.some((d) => !d)) {
 			showMessage({
@@ -149,7 +164,6 @@ export default function SignUp() {
 			);
 			const data = await response.json();
 			if (!response.ok) throw new Error(data.message || "Failed to create PIN");
-
 			showMessage({
 				message: "Success",
 				description: "PIN created successfully!",
@@ -158,8 +172,7 @@ export default function SignUp() {
 				color: "#fff",
 				textStyle: { fontFamily: "GilroyMedium" },
 			});
-
-			setShowPinModal(false);
+			closeBottomSheet();
 			router.push("/(routes)/login");
 		} catch (err: any) {
 			showMessage({
@@ -183,17 +196,17 @@ export default function SignUp() {
 				<StatusBar barStyle='dark-content' />
 
 				<ScrollView showsVerticalScrollIndicator={false}>
-					<Spacer size={50} />
+					<Spacer size={20} />
 					<Image
 						source={require("@/assets/images/kelogo.png")}
 						style={styles.slideImage}
 					/>
 
-					<Spacer size={16} />
+					<Spacer size={30} />
 					<View>
 						<Image
 							source={require("@/assets/images/Frame 23.png")}
-							style={styles.imageStyle}
+							style={styles.slideImage}
 						/>
 
 						<Spacer size={20} />
@@ -400,12 +413,28 @@ export default function SignUp() {
 									) : (
 										<Image
 											source={require("@/assets/images/eye-close-line.png")}
-											style={{ width: 20, height: 20 }}
 										/>
 									)}
 								</TouchableOpacity>
 							</View>
 						</View>
+
+						<Spacer size={8} />
+
+						<TouchableOpacity
+							onPress={() => router.push("/(routes)/forgotPassword")}
+						>
+							<Text
+								style={{
+									textAlign: "right",
+									fontFamily: "LufgaMedium",
+									opacity: 0.6,
+									color: "#00000099",
+								}}
+							>
+								Forgot Password?
+							</Text>
+						</TouchableOpacity>
 
 						<Spacer size={16} />
 						<TouchableOpacity
@@ -450,86 +479,82 @@ export default function SignUp() {
 					</Text>
 				</View>
 
-				<Modal
-					visible={showPinModal}
-					animationType='slide'
-					transparent
-					onRequestClose={() => setShowPinModal(false)}
+				{/* PIN Creation Bottom Sheet */}
+				<BottomSheet
+					ref={bottomSheetRef}
+					index={-1}
+					snapPoints={snapPoints}
+					enablePanDownToClose={false}
+					backgroundStyle={{ backgroundColor: "#E0FFE0" }}
+					containerStyle={styles.sheetShadow}
 				>
-					<View
-						style={{
-							flex: 1,
-							justifyContent: "flex-end",
-							backgroundColor: "rgba(0,0,0,0.5)",
-						}}
-					>
-						<View
+					<BottomSheetView style={{ padding: 20 }}>
+						<Text
 							style={{
-								backgroundColor: "white",
-								padding: 20,
-								borderTopLeftRadius: 20,
-								borderTopRightRadius: 20,
+								fontSize: 20,
+								fontFamily: "GilroyBold",
+								textAlign: "center",
+								marginBottom: 20,
 							}}
 						>
-							<Text
-								style={{
-									fontSize: 20,
-									fontFamily: "GilroyBold",
-									textAlign: "center",
-									marginBottom: 20,
-								}}
-							>
-								Create Your 4-Digit PIN
-							</Text>
+							Create Your 4-Digit PIN
+						</Text>
 
-							<View
-								style={{
-									flexDirection: "row",
-									justifyContent: "space-evenly",
-									marginBottom: 24,
-								}}
-							>
-								{pin.map((digit, i) => (
-									<TextInput
-										key={i}
-										ref={pinRefs.current[i]}
-										value={digit}
-										onChangeText={(val) => onPinChange(val, i)}
-										onKeyPress={(e) => onPinKeyPress(e, i)}
-										keyboardType='number-pad'
-										maxLength={1}
-										style={{
-											width: 60,
-											height: 60,
-											borderWidth: 2,
-											borderRadius: 10,
-											backgroundColor: "#fff",
-											borderColor:
-												focusedInput === `pin${i}` ? "#008000" : "#ccc",
-											textAlign: "center",
-											fontSize: 24,
-											fontFamily: "LufgaRegular",
-										}}
-										onFocus={() => setFocusedInput(`pin${i}`)}
-										onBlur={() => setFocusedInput(null)}
-									/>
-								))}
-							</View>
-
-							<TouchableOpacity
-								style={[styles.btnContainer, { marginBottom: 16 }]}
-								onPress={handleCreatePin}
-								disabled={pinSpinner}
-							>
-								{pinSpinner ? (
-									<ActivityIndicator size='small' color='#fff' />
-								) : (
-									<Text style={styles.btnContent}>Create PIN</Text>
-								)}
-							</TouchableOpacity>
+						{/* PIN */}
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-evenly",
+								marginBottom: 24,
+							}}
+						>
+							{pin.map((digit, i) => (
+								<TextInput
+									key={`pin-${i}`}
+									ref={pinRefs.current[i]}
+									value={digit}
+									onChangeText={(val) =>
+										onPinChange(
+											val.replace(/[^0-9]/g, ""),
+											i,
+											pin,
+											pinRefs.current
+										)
+									}
+									onKeyPress={(e) => onPinKeyPress(e, i, pinRefs.current)}
+									keyboardType='number-pad'
+									maxLength={1}
+									style={{
+										width: 60,
+										height: 60,
+										borderWidth: 2,
+										borderRadius: 10,
+										backgroundColor: "#fff",
+										borderColor:
+											focusedInput === `pin${i}` ? "#008000" : "#ccc",
+										textAlign: "center",
+										fontSize: 24,
+										fontFamily: "LufgaRegular",
+									}}
+									onFocus={() => setFocusedInput(`pin${i}`)}
+									onBlur={() => setFocusedInput(null)}
+								/>
+							))}
 						</View>
-					</View>
-				</Modal>
+
+						<TouchableOpacity
+							style={[styles.btnContainer, { marginBottom: 16 }]}
+							onPress={handleCreatePin}
+							disabled={pinSpinner}
+						>
+							{pinSpinner ? (
+								<ActivityIndicator size='small' color='#fff' />
+							) : (
+								<Text style={styles.btnContent}>Create PIN</Text>
+							)}
+						</TouchableOpacity>
+					</BottomSheetView>
+				</BottomSheet>
 			</SafeAreaView>
 		</LinearGradient>
 	);
